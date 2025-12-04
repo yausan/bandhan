@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
-import 'register_screen.dart';
 import '../home/home_screen.dart';
+import 'login_screen.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class RegisterScreen extends StatefulWidget {
+  const RegisterScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _RegisterScreenState extends State<RegisterScreen> {
+  final TextEditingController nameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
@@ -19,7 +20,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Login"),
+        title: const Text("Register"),
         backgroundColor: Colors.redAccent,
       ),
       body: Padding(
@@ -29,6 +30,21 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              TextFormField(
+                controller: nameController,
+                decoration: const InputDecoration(
+                  labelText: "Full Name",
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.person),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return "Please enter your name";
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 20),
               TextFormField(
                 controller: emailController,
                 decoration: const InputDecoration(
@@ -65,7 +81,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: ElevatedButton(
                   onPressed: () {
                     if (_formKey.currentState!.validate()) {
-                      // Navigate to HomeScreen after login
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
@@ -77,21 +92,20 @@ class _LoginScreenState extends State<LoginScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.redAccent,
                   ),
-                  child: const Text("Login"),
+                  child: const Text("Register"),
                 ),
               ),
               const SizedBox(height: 20),
               TextButton(
                 onPressed: () {
-                  // Navigate to RegisterScreen
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const RegisterScreen(),
+                      builder: (context) => const LoginScreen(),
                     ),
                   );
                 },
-                child: const Text("Don't have an account? Register"),
+                child: const Text("Already have an account? Login"),
               ),
             ],
           ),
