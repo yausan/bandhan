@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'register_screen.dart';
+import '../home/home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -63,9 +65,12 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: ElevatedButton(
                   onPressed: () {
                     if (_formKey.currentState!.validate()) {
-                      // TODO: Replace with actual login logic
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("Login Successful")),
+                      // Navigate to HomeScreen after login
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const HomeScreen(),
+                        ),
                       );
                     }
                   },
@@ -78,9 +83,12 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 20),
               TextButton(
                 onPressed: () {
-                  // TODO: Navigate to Register Screen
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Go to Register Screen")),
+                  // Navigate to RegisterScreen
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const RegisterScreen(),
+                    ),
                   );
                 },
                 child: const Text("Don't have an account? Register"),
