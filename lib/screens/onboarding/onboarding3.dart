@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../auth/login_screen.dart';
 
 class Onboarding3 extends StatelessWidget {
   const Onboarding3({super.key});
@@ -27,8 +28,9 @@ class Onboarding3 extends StatelessWidget {
             const SizedBox(height: 80),
             ElevatedButton(
               onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Go to Login Screen Next")),
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => const LoginScreen()),
                 );
               },
               child: const Text("Get Started"),
