@@ -36,7 +36,7 @@ class BandhanApp extends StatelessWidget {
         primaryColor: Colors.redAccent,
         textTheme: ThemeData.dark().textTheme.apply(fontFamily: 'OpenSans'),
       ),
-      themeMode: ThemeMode.system, // respects user device preference
+      themeMode: ThemeMode.system,
       home: const SplashScreen(),
     );
   }
