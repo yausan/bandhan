@@ -20,7 +20,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Register"),
+        title: const Text("Sign Up"),
         backgroundColor: Colors.redAccent,
       ),
       body: Padding(
@@ -30,12 +30,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              // Name Field
               TextFormField(
                 controller: nameController,
                 decoration: const InputDecoration(
                   labelText: "Full Name",
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.person),
+                  labelStyle: TextStyle(
+                    fontFamily: 'OpenSans',
+                    fontStyle: FontStyle.italic,
+                    fontSize: 16,
+                  ),
+                ),
+                style: const TextStyle(
+                  fontFamily: 'OpenSans',
+                  fontStyle: FontStyle.italic,
+                  fontSize: 16,
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -45,12 +56,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 },
               ),
               const SizedBox(height: 20),
+
+              // Email Field
               TextFormField(
                 controller: emailController,
                 decoration: const InputDecoration(
                   labelText: "Email",
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.email),
+                  labelStyle: TextStyle(
+                    fontFamily: 'OpenSans',
+                    fontStyle: FontStyle.italic,
+                    fontSize: 16,
+                  ),
+                ),
+                style: const TextStyle(
+                  fontFamily: 'OpenSans',
+                  fontStyle: FontStyle.italic,
+                  fontSize: 16,
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -60,6 +83,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 },
               ),
               const SizedBox(height: 20),
+
+              // Password Field
               TextFormField(
                 controller: passwordController,
                 obscureText: true,
@@ -67,6 +92,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   labelText: "Password",
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.lock),
+                  labelStyle: TextStyle(
+                    fontFamily: 'OpenSans',
+                    fontStyle: FontStyle.italic,
+                    fontSize: 16,
+                  ),
+                ),
+                style: const TextStyle(
+                  fontFamily: 'OpenSans',
+                  fontStyle: FontStyle.italic,
+                  fontSize: 16,
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -76,6 +111,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 },
               ),
               const SizedBox(height: 30),
+
+              // Register Button
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -91,11 +128,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.redAccent,
+                    textStyle: const TextStyle(
+                      fontFamily: 'OpenSans',
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
                   ),
-                  child: const Text("Register"),
+                  child: const Text("Sign Up"),
                 ),
               ),
               const SizedBox(height: 20),
+
+              // Navigate to Login
               TextButton(
                 onPressed: () {
                   Navigator.pushReplacement(
@@ -105,7 +149,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                   );
                 },
-                child: const Text("Already have an account? Login"),
+                child: const Text.rich(
+                  TextSpan(
+                    text: "Already have an account? ",
+                    style: TextStyle(fontFamily: 'OpenSans', fontSize: 16),
+                    children: [
+                      TextSpan(
+                        text: "Login",
+                        style: TextStyle(
+                          fontFamily: 'OpenSans',
+                          fontStyle: FontStyle.italic,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ],
           ),

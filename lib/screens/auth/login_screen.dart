@@ -21,6 +21,11 @@ class _LoginScreenState extends State<LoginScreen> {
       appBar: AppBar(
         title: const Text("Login"),
         backgroundColor: Colors.redAccent,
+        titleTextStyle: const TextStyle(
+          fontFamily: 'OpenSans',
+          fontWeight: FontWeight.bold,
+          fontSize: 20,
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(24),
@@ -29,12 +34,23 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              // Email Field
               TextFormField(
                 controller: emailController,
                 decoration: const InputDecoration(
                   labelText: "Email",
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.email),
+                  labelStyle: TextStyle(
+                    fontFamily: 'OpenSans',
+                    fontStyle: FontStyle.italic,
+                    fontSize: 16,
+                  ),
+                ),
+                style: const TextStyle(
+                  fontFamily: 'OpenSans',
+                  fontStyle: FontStyle.italic,
+                  fontSize: 16,
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -44,6 +60,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 },
               ),
               const SizedBox(height: 20),
+
+              // Password Field
               TextFormField(
                 controller: passwordController,
                 obscureText: true,
@@ -51,6 +69,16 @@ class _LoginScreenState extends State<LoginScreen> {
                   labelText: "Password",
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.lock),
+                  labelStyle: TextStyle(
+                    fontFamily: 'OpenSans',
+                    fontStyle: FontStyle.italic,
+                    fontSize: 16,
+                  ),
+                ),
+                style: const TextStyle(
+                  fontFamily: 'OpenSans',
+                  fontStyle: FontStyle.italic,
+                  fontSize: 16,
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -60,12 +88,13 @@ class _LoginScreenState extends State<LoginScreen> {
                 },
               ),
               const SizedBox(height: 30),
+
+              // Login Button
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {
                     if (_formKey.currentState!.validate()) {
-                      // Navigate to HomeScreen after login
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
@@ -76,14 +105,20 @@ class _LoginScreenState extends State<LoginScreen> {
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.redAccent,
+                    textStyle: const TextStyle(
+                      fontFamily: 'OpenSans',
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
                   ),
                   child: const Text("Login"),
                 ),
               ),
               const SizedBox(height: 20),
+
+              // Navigate to Register
               TextButton(
                 onPressed: () {
-                  // Navigate to RegisterScreen
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
@@ -91,7 +126,23 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   );
                 },
-                child: const Text("Don't have an account? Register"),
+                child: const Text.rich(
+                  TextSpan(
+                    text: "Don't have an account? ",
+                    style: TextStyle(fontFamily: 'OpenSans', fontSize: 12),
+                    children: [
+                      TextSpan(
+                        text: "Register",
+                        style: TextStyle(
+                          fontFamily: 'OpenSans',
+                          fontStyle: FontStyle.italic,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ],
           ),
