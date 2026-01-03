@@ -97,10 +97,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: ElevatedButton(
                   onPressed: () async {
                     if (_formKey.currentState!.validate()) {
-                      // Open Hive box
                       var box = await Hive.openBox<UserModel>('usersBox');
 
-                      // Get user by email (email is used as key)
+                      // Retrieve user by email
                       final user = box.get(emailController.text.trim());
 
                       if (user == null) {
