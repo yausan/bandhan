@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import '../home/home_screen.dart';
 import 'login_screen.dart';
 import 'package:bandhan/data/model/user_model.dart';
 
@@ -121,7 +120,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   onPressed: () async {
                     if (_formKey.currentState!.validate()) {
                       // Open Hive box
-                      var box = await Hive.openBox<UserModel>('usersBox');
+                      var box = await Hive.openBox<UserModel>('users');
 
                       // Create new user
                       var user = UserModel(
@@ -130,14 +129,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         password: passwordController.text.trim(),
                       );
 
-                      // Use email as key to avoid duplicates
+                      // Save user in Hive using email as key
                       await box.put(user.email, user);
 
-                      // Navigate to HomeScreen
+                      // Navigate to Login screen
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const HomeScreen(),
+                          builder: (context) => const LoginScreen(),
                         ),
                       );
                     }
