@@ -100,18 +100,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       // Open Hive box
                       var box = await Hive.openBox<UserModel>('usersBox');
 
-                      // Find user by email
-                      final user = box.values.firstWhere(
-                        (u) => u.email == emailController.text.trim(),
-                        orElse: () => UserModel(
-                          email: '',
-                          password: '',
-                          name: '', // Removed 'id' here
-                        ),
-                      );
+                      // Get user by email (email is used as key)
+                      final user = box.get(emailController.text.trim());
 
-                      if (user.email == '') {
-                        // User not found
+                      if (user == null) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text("User not found")),
                         );
@@ -119,7 +111,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       }
 
                       if (user.password != passwordController.text.trim()) {
-                        // Wrong password
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text("Incorrect password")),
                         );
