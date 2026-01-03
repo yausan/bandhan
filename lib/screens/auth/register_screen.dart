@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import '../home/home_screen.dart';
 import 'login_screen.dart';
 import 'package:bandhan/data/model/user_model.dart';
 
@@ -119,8 +120,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 child: ElevatedButton(
                   onPressed: () async {
                     if (_formKey.currentState!.validate()) {
-                      // Open Hive box
-                      var box = await Hive.openBox<UserModel>('users');
+                      var box = await Hive.openBox<UserModel>('usersBox');
+
+                      // Check if user already exists
+                      if (box.containsKey(emailController.text.trim())) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("User already exists")),
+                        );
+                        return;
+                      }
 
                       // Create new user
                       var user = UserModel(
@@ -129,10 +137,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         password: passwordController.text.trim(),
                       );
 
-                      // Save user in Hive using email as key
+                      // Save user using email as key
                       await box.put(user.email, user);
 
-                      // Navigate to Login screen
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("Sign up successful")),
+                      );
+
+                      // Navigate to LoginScreen
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
