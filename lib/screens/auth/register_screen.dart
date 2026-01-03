@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import '../home/home_screen.dart';
 import 'login_screen.dart';
+import 'package:bandhan/data/model/user_model.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -116,8 +118,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     if (_formKey.currentState!.validate()) {
+                      // Open Hive box
+                      var box = await Hive.openBox<UserModel>('usersBox');
+
+                      // Create new user
+                      var user = UserModel(
+                        name: nameController.text.trim(),
+                        email: emailController.text.trim(),
+                        password: passwordController.text.trim(),
+                      );
+
+                      // Use email as key to avoid duplicates
+                      await box.put(user.email, user);
+
+                      // Navigate to HomeScreen
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(

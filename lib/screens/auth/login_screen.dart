@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'register_screen.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import '../home/home_screen.dart';
+import 'register_screen.dart';
+import 'package:bandhan/data/model/user_model.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -93,8 +95,38 @@ class _LoginScreenState extends State<LoginScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     if (_formKey.currentState!.validate()) {
+                      // Open Hive box
+                      var box = await Hive.openBox<UserModel>('usersBox');
+
+                      // Find user by email
+                      final user = box.values.firstWhere(
+                        (u) => u.email == emailController.text.trim(),
+                        orElse: () => UserModel(
+                          email: '',
+                          password: '',
+                          name: '', // Removed 'id' here
+                        ),
+                      );
+
+                      if (user.email == '') {
+                        // User not found
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("User not found")),
+                        );
+                        return;
+                      }
+
+                      if (user.password != passwordController.text.trim()) {
+                        // Wrong password
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("Incorrect password")),
+                        );
+                        return;
+                      }
+
+                      // Login successful
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
