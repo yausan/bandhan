@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'screens/splash_screen.dart';
-import 'data/model/user_model.dart'; // Ensure this file contains UserModel and UserModelAdapter
+import 'data/model/user_model.dart'; // Ensure this contains UserModel and UserModelAdapter
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -9,10 +9,10 @@ void main() async {
   // Initialize Hive
   await Hive.initFlutter();
 
-  // Register adapters
+  // Register Hive adapters
   Hive.registerAdapter(UserModelAdapter());
 
-  // Open boxes
+  // Open the box for users (use same name everywhere)
   await Hive.openBox<UserModel>('users');
 
   runApp(const BandhanApp());
