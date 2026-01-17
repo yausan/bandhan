@@ -3,6 +3,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../home/home_screen.dart';
 import 'register_screen.dart';
 import 'package:bandhan/data/model/user_model.dart';
+import 'package:bandhan/core/api_client/api_client.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -14,8 +15,90 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-
   final _formKey = GlobalKey<FormState>();
+  final ApiClient apiClient = ApiClient();
+
+  bool isLoading = false;
+
+  Future<void> loginUser() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => isLoading = true);
+
+    final email = emailController.text.trim();
+    final password = passwordController.text.trim();
+
+    // 1️⃣ Try API login first
+    debugPrint("Attempting API login for: $email");
+    try {
+      final response = await apiClient.studentLogin(
+        email: email,
+        password: password,
+      );
+
+      debugPrint("API Response: ${response.statusCode} | ${response.data}");
+
+      if (response.statusCode == 200) {
+        if (!mounted) return;
+
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text("Login successful (API)")));
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const HomeScreen()),
+        );
+        setState(() => isLoading = false);
+        return;
+      }
+    } catch (e) {
+      debugPrint("API login failed: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("API login failed, trying local login..."),
+          ),
+        );
+      }
+    }
+
+    // 2️⃣ Fallback to Hive local login
+    debugPrint("Trying Hive login for: $email");
+    var box = await Hive.openBox<UserModel>('usersBox');
+    final user = box.get(email);
+
+    if (user == null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("User not found (Hive)")));
+      setState(() => isLoading = false);
+      return;
+    }
+
+    if (user.password != password) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Incorrect password (Hive)")),
+      );
+      setState(() => isLoading = false);
+      return;
+    }
+
+    // Hive login successful
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text("Login successful (Hive)")));
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const HomeScreen()),
+    );
+
+    setState(() => isLoading = false);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,34 +119,21 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Email Field
+              // Email
               TextFormField(
                 controller: emailController,
                 decoration: const InputDecoration(
                   labelText: "Email",
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.email),
-                  labelStyle: TextStyle(
-                    fontFamily: 'OpenSans',
-                    fontStyle: FontStyle.italic,
-                    fontSize: 16,
-                  ),
                 ),
-                style: const TextStyle(
-                  fontFamily: 'OpenSans',
-                  fontStyle: FontStyle.italic,
-                  fontSize: 16,
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return "Please enter email";
-                  }
-                  return null;
-                },
+                validator: (value) => (value == null || value.isEmpty)
+                    ? "Please enter email"
+                    : null,
               ),
               const SizedBox(height: 20),
 
-              // Password Field
+              // Password
               TextFormField(
                 controller: passwordController,
                 obscureText: true,
@@ -71,23 +141,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   labelText: "Password",
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.lock),
-                  labelStyle: TextStyle(
-                    fontFamily: 'OpenSans',
-                    fontStyle: FontStyle.italic,
-                    fontSize: 16,
-                  ),
                 ),
-                style: const TextStyle(
-                  fontFamily: 'OpenSans',
-                  fontStyle: FontStyle.italic,
-                  fontSize: 16,
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return "Please enter password";
-                  }
-                  return null;
-                },
+                validator: (value) => (value == null || value.isEmpty)
+                    ? "Please enter password"
+                    : null,
               ),
               const SizedBox(height: 30),
 
@@ -95,45 +152,20 @@ class _LoginScreenState extends State<LoginScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () async {
-                    if (_formKey.currentState!.validate()) {
-                      var box = await Hive.openBox<UserModel>('usersBox');
-
-                      // Retrieve user by email
-                      final user = box.get(emailController.text.trim());
-
-                      if (user == null) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text("User not found")),
-                        );
-                        return;
-                      }
-
-                      if (user.password != passwordController.text.trim()) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text("Incorrect password")),
-                        );
-                        return;
-                      }
-
-                      // Login successful
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const HomeScreen(),
-                        ),
-                      );
-                    }
-                  },
+                  onPressed: isLoading ? null : loginUser,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.redAccent,
-                    textStyle: const TextStyle(
-                      fontFamily: 'OpenSans',
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                    ),
                   ),
-                  child: const Text("Login"),
+                  child: isLoading
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Text("Login"),
                 ),
               ),
               const SizedBox(height: 20),
@@ -141,6 +173,7 @@ class _LoginScreenState extends State<LoginScreen> {
               // Navigate to Register
               TextButton(
                 onPressed: () {
+                  if (!mounted) return;
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
@@ -151,15 +184,12 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: const Text.rich(
                   TextSpan(
                     text: "Don't have an account? ",
-                    style: TextStyle(fontFamily: 'OpenSans', fontSize: 12),
                     children: [
                       TextSpan(
                         text: "Register",
                         style: TextStyle(
-                          fontFamily: 'OpenSans',
                           fontStyle: FontStyle.italic,
                           fontWeight: FontWeight.bold,
-                          fontSize: 12,
                         ),
                       ),
                     ],
