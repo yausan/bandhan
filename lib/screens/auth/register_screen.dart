@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import '../home/home_screen.dart';
 import 'login_screen.dart';
 import 'package:bandhan/data/model/user_model.dart';
+import 'package:bandhan/core/api_client/api_client.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -17,6 +17,88 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController passwordController = TextEditingController();
 
   final _formKey = GlobalKey<FormState>();
+  final ApiClient apiClient = ApiClient();
+
+  bool isLoading = false;
+
+  Future<void> registerUser() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => isLoading = true);
+
+    final name = nameController.text.trim();
+    final email = emailController.text.trim();
+    final password = passwordController.text.trim();
+
+    debugPrint("Attempting API registration for: $email");
+
+    // 1️⃣ Try API registration
+    try {
+      final response = await apiClient.studentRegister(
+        name: name,
+        email: email,
+        password: password,
+      );
+
+      debugPrint("API Response: ${response.data}");
+
+      if (response.data['success'] == true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response.data['message'] ?? "Sign up successful"),
+          ),
+        );
+
+        // Optional: Save to Hive for offline fallback
+        var box = await Hive.openBox<UserModel>('usersBox');
+        var user = UserModel(name: name, email: email, password: password);
+        await box.put(email, user);
+
+        if (!mounted) return;
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
+        );
+      } else {
+        throw Exception(response.data['message'] ?? "API failed");
+      }
+    } catch (e) {
+      debugPrint("API registration failed: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("API failed: $e\nUsing local registration..."),
+          ),
+        );
+      }
+
+      // 2️⃣ Fallback to Hive registration
+      var box = await Hive.openBox<UserModel>('usersBox');
+
+      if (box.containsKey(email)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("User already exists locally")),
+        );
+        setState(() => isLoading = false);
+        return;
+      }
+
+      var user = UserModel(name: name, email: email, password: password);
+      await box.put(email, user);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Sign up successful (Hive fallback)")),
+      );
+
+      if (!mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+      );
+    }
+
+    setState(() => isLoading = false);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,23 +121,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   labelText: "Full Name",
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.person),
-                  labelStyle: TextStyle(
-                    fontFamily: 'OpenSans',
-                    fontStyle: FontStyle.italic,
-                    fontSize: 16,
-                  ),
                 ),
-                style: const TextStyle(
-                  fontFamily: 'OpenSans',
-                  fontStyle: FontStyle.italic,
-                  fontSize: 16,
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return "Please enter your name";
-                  }
-                  return null;
-                },
+                validator: (value) => (value == null || value.isEmpty)
+                    ? "Please enter name"
+                    : null,
               ),
               const SizedBox(height: 20),
 
@@ -66,23 +135,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   labelText: "Email",
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.email),
-                  labelStyle: TextStyle(
-                    fontFamily: 'OpenSans',
-                    fontStyle: FontStyle.italic,
-                    fontSize: 16,
-                  ),
                 ),
-                style: const TextStyle(
-                  fontFamily: 'OpenSans',
-                  fontStyle: FontStyle.italic,
-                  fontSize: 16,
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return "Please enter email";
-                  }
-                  return null;
-                },
+                validator: (value) => (value == null || value.isEmpty)
+                    ? "Please enter email"
+                    : null,
               ),
               const SizedBox(height: 20),
 
@@ -94,23 +150,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   labelText: "Password",
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.lock),
-                  labelStyle: TextStyle(
-                    fontFamily: 'OpenSans',
-                    fontStyle: FontStyle.italic,
-                    fontSize: 16,
-                  ),
                 ),
-                style: const TextStyle(
-                  fontFamily: 'OpenSans',
-                  fontStyle: FontStyle.italic,
-                  fontSize: 16,
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return "Please enter password";
-                  }
-                  return null;
-                },
+                validator: (value) => (value == null || value.isEmpty)
+                    ? "Please enter password"
+                    : null,
               ),
               const SizedBox(height: 30),
 
@@ -118,50 +161,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () async {
-                    if (_formKey.currentState!.validate()) {
-                      var box = await Hive.openBox<UserModel>('usersBox');
-
-                      // Check if user already exists
-                      if (box.containsKey(emailController.text.trim())) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text("User already exists")),
-                        );
-                        return;
-                      }
-
-                      // Create new user
-                      var user = UserModel(
-                        name: nameController.text.trim(),
-                        email: emailController.text.trim(),
-                        password: passwordController.text.trim(),
-                      );
-
-                      // Save user using email as key
-                      await box.put(user.email, user);
-
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("Sign up successful")),
-                      );
-
-                      // Navigate to LoginScreen
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const LoginScreen(),
-                        ),
-                      );
-                    }
-                  },
+                  onPressed: isLoading ? null : registerUser,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.redAccent,
-                    textStyle: const TextStyle(
-                      fontFamily: 'OpenSans',
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                    ),
                   ),
-                  child: const Text("Sign Up"),
+                  child: isLoading
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Text("Sign Up"),
                 ),
               ),
               const SizedBox(height: 20),
@@ -169,30 +182,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
               // Navigate to Login
               TextButton(
                 onPressed: () {
+                  if (!mounted) return;
                   Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(
-                      builder: (context) => const LoginScreen(),
-                    ),
+                    MaterialPageRoute(builder: (_) => const LoginScreen()),
                   );
                 },
-                child: const Text.rich(
-                  TextSpan(
-                    text: "Already have an account? ",
-                    style: TextStyle(fontFamily: 'OpenSans', fontSize: 16),
-                    children: [
-                      TextSpan(
-                        text: "Login",
-                        style: TextStyle(
-                          fontFamily: 'OpenSans',
-                          fontStyle: FontStyle.italic,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                child: const Text("Already have an account? Login"),
               ),
             ],
           ),
