@@ -32,6 +32,11 @@ dependencies:
     sdk: flutter
   hive: ^2.2.3
   hive_flutter: ^1.1.0
+  dio: ^5.4.0
+  provider: ^6.0.5
+  shared_preferences: ^2.1.1
+  flutter_secure_storage: ^8.1.0
+  intl: ^0.18.1
   
   
 
