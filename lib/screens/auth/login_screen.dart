@@ -31,7 +31,7 @@ class _LoginScreenState extends State<LoginScreen> {
     // 1️⃣ Try API login first
     debugPrint("Attempting API login for: $email");
     try {
-      final response = await apiClient.studentLogin(
+      final response = await apiClient.userLogin(
         email: email,
         password: password,
       );

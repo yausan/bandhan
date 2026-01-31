@@ -34,7 +34,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     // 1️⃣ Try API registration
     try {
-      final response = await apiClient.studentRegister(
+      final response = await apiClient.userRegister(
         name: name,
         email: email,
         password: password,
