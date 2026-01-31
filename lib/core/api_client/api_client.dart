@@ -18,21 +18,34 @@ class ApiClient {
       ),
     );
 
-    // 🔹 Log everything for debugging
+    // Debug logging
     _dio.interceptors.add(
       LogInterceptor(requestBody: true, responseBody: true, error: true),
     );
   }
 
-  // ---------------- STUDENT REGISTER ----------------
-  Future<Response> studentRegister({
+  // Test connection
+  Future<Response> testConnection() async {
+    try {
+      return await _dio.get(ApiEndpoints.test);
+    } on DioException catch (e) {
+      throw Exception(
+        (e.response?.data is Map<String, dynamic>)
+            ? e.response?.data["message"] ?? "Connection failed"
+            : e.response?.data.toString() ?? "Connection failed",
+      );
+    }
+  }
+
+  // Register user
+  Future<Response> userRegister({
     required String name,
     required String email,
     required String password,
   }) async {
     try {
       return await _dio.post(
-        ApiEndpoints.studentRegister,
+        ApiEndpoints.register,
         data: {"name": name, "email": email, "password": password},
       );
     } on DioException catch (e) {
@@ -44,14 +57,14 @@ class ApiClient {
     }
   }
 
-  // ---------------- STUDENT LOGIN ----------------
-  Future<Response> studentLogin({
+  // Login user
+  Future<Response> userLogin({
     required String email,
     required String password,
   }) async {
     try {
       return await _dio.post(
-        ApiEndpoints.studentLogin,
+        ApiEndpoints.login,
         data: {"email": email, "password": password},
       );
     } on DioException catch (e) {
