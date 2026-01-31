@@ -6,7 +6,6 @@ import '../core/api_client/api_endpoints.dart';
 
 class ImageService {
   static final ImagePicker _picker = ImagePicker();
-  static final Dio _dio = Dio();
 
   // Pick image from gallery
   static Future<File?> pickImageFromGallery() async {
@@ -17,13 +16,14 @@ class ImageService {
         maxHeight: 800,
         imageQuality: 85,
       );
-      
+
       if (image != null) {
+        print('📷 Picked image: ${image.path}');
         return File(image.path);
       }
       return null;
     } catch (e) {
-      print('Error picking image from gallery: $e');
+      print('❌ Gallery error: $e');
       return null;
     }
   }
@@ -37,25 +37,31 @@ class ImageService {
         maxHeight: 800,
         imageQuality: 85,
       );
-      
+
       if (image != null) {
+        print('📷 Camera image: ${image.path}');
         return File(image.path);
       }
       return null;
     } catch (e) {
-      print('Error picking image from camera: $e');
+      print('❌ Camera error: $e');
       return null;
     }
   }
 
   // Upload image to server
-  static Future<Map<String, dynamic>> uploadProfilePicture(File imageFile) async {
+  static Future<Map<String, dynamic>> uploadProfilePicture(
+    File imageFile,
+  ) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('token') ?? '';
 
+      print('🔑 Token exists: ${token.isNotEmpty}');
+      print('📁 File: ${imageFile.path}');
+
       String fileName = imageFile.path.split('/').last;
-      
+
       FormData formData = FormData.fromMap({
         'image': await MultipartFile.fromFile(
           imageFile.path,
@@ -63,8 +69,17 @@ class ImageService {
         ),
       });
 
-      Response response = await _dio.post(
-        '${ApiEndpoints.baseUrl}/upload',
+      Dio dio = Dio(
+        BaseOptions(
+          baseUrl: ApiEndpoints.baseUrl, // This is now http://10.0.2.2:3000
+          connectTimeout: ApiEndpoints.connectionTimeout,
+          receiveTimeout: ApiEndpoints.receiveTimeout,
+        ),
+      );
+
+      // Use the correct endpoint from ApiEndpoints
+      Response response = await dio.post(
+        ApiEndpoints.upload, // This is '/api/upload'
         data: formData,
         options: Options(
           headers: {
@@ -74,34 +89,57 @@ class ImageService {
         ),
       );
 
-      return {
-        'success': true,
-        'data': response.data,
-      };
+      print('✅ Upload successful! Status: ${response.statusCode}');
+      print('📦 Response: ${response.data}');
+
+      return {'success': true, 'data': response.data};
     } catch (e) {
-      print('Error uploading image: $e');
-      return {
-        'success': false,
-        'message': e.toString(),
-      };
+      print('❌ Upload error: $e');
+      if (e is DioException) {
+        print('📊 Dio Error: ${e.type}');
+        print('📄 Response: ${e.response?.data}');
+      }
+      return {'success': false, 'message': e.toString()};
     }
   }
 
   // Get full image URL
   static String getImageUrl(String? imagePath) {
+    // If no image, return empty string
     if (imagePath == null || imagePath.isEmpty) {
-      return 'https://via.placeholder.com/150';
+      print('🖼️ No profile picture');
+      return '';
     }
-    
+
+    // If it's default profile image, return empty
+    if (imagePath.contains('default-profile')) {
+      print('🖼️ Default profile image requested');
+      return '';
+    }
+
+    // If already a full URL, return as-is
     if (imagePath.startsWith('http')) {
+      print('🖼️ Full URL: $imagePath');
       return imagePath;
     }
-    
-    // Handle relative paths from server
+
+    // Handle relative paths
     if (imagePath.startsWith('/uploads')) {
-      return 'http://10.0.2.2:3000$imagePath';
+      final url = '${ApiEndpoints.baseUrl}$imagePath';
+      print('🖼️ Constructed URL: $url');
+      return url;
     }
-    
-    return imagePath;
+
+    // If it starts with / but not uploads
+    if (imagePath.startsWith('/')) {
+      final url = '${ApiEndpoints.baseUrl}$imagePath';
+      print('🖼️ URL with slash: $url');
+      return url;
+    }
+
+    // Default: assume it's in uploads folder
+    final url = '${ApiEndpoints.baseUrl}/uploads/$imagePath';
+    print('🖼️ Default URL: $url');
+    return url;
   }
 }

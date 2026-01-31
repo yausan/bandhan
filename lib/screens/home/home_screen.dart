@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../profile/edit_profile_screen.dart';
+import '../profile/profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -20,7 +22,10 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Bandhan")),
+      appBar: AppBar(
+        title: const Text("Bandhan"),
+        backgroundColor: Colors.redAccent,
+      ),
 
       drawer: Drawer(
         child: ListView(
@@ -66,8 +71,13 @@ class _HomeScreenState extends State<HomeScreen> {
               leading: const Icon(Icons.person),
               title: const Text('Profile'),
               onTap: () {
-                setState(() => _currentIndex = 3);
-                Navigator.pop(context);
+                Navigator.pop(context); // Close drawer
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ProfileScreen(),
+                  ),
+                );
               },
             ),
             const Divider(),
@@ -79,7 +89,13 @@ class _HomeScreenState extends State<HomeScreen> {
             ListTile(
               leading: const Icon(Icons.logout),
               title: const Text('Logout'),
-              onTap: () {},
+              onTap: () {
+                Navigator.pushNamedAndRemoveUntil(
+                  context,
+                  '/login',
+                  (route) => false,
+                );
+              },
             ),
           ],
         ),
@@ -90,7 +106,17 @@ class _HomeScreenState extends State<HomeScreen> {
         currentIndex: _currentIndex,
         selectedItemColor: Colors.redAccent,
         unselectedItemColor: Colors.grey,
-        onTap: (index) => setState(() => _currentIndex = index),
+        onTap: (index) {
+          // If Profile tab is clicked, navigate to ProfileScreen
+          if (index == 3) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ProfileScreen()),
+            );
+          } else {
+            setState(() => _currentIndex = index);
+          }
+        },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
           BottomNavigationBarItem(icon: Icon(Icons.favorite), label: "Matches"),
@@ -129,6 +155,55 @@ class DashboardTab extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 20),
+
+          // View Profile Card
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.person, color: Colors.redAccent),
+              title: const Text(
+                "View My Profile",
+                style: TextStyle(
+                  fontFamily: 'OpenSans',
+                  fontWeight: FontWeight.normal,
+                ),
+              ),
+              trailing: const Icon(Icons.arrow_forward_ios),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ProfileScreen(),
+                  ),
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 10),
+
+          // Edit Profile Card
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.edit, color: Colors.blue),
+              title: const Text(
+                "Edit Profile Picture",
+                style: TextStyle(
+                  fontFamily: 'OpenSans',
+                  fontWeight: FontWeight.normal,
+                ),
+              ),
+              trailing: const Icon(Icons.arrow_forward_ios),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const EditProfileScreen(),
+                  ),
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 10),
+
           Card(
             child: ListTile(
               leading: const Icon(Icons.search, color: Colors.redAccent),
@@ -143,6 +218,7 @@ class DashboardTab extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 10),
+
           Card(
             child: ListTile(
               leading: const Icon(Icons.favorite, color: Colors.redAccent),
@@ -154,6 +230,28 @@ class DashboardTab extends StatelessWidget {
                 ),
               ),
               trailing: const Icon(Icons.arrow_forward_ios),
+            ),
+          ),
+
+          const Spacer(),
+
+          // Logout Button
+          Center(
+            child: TextButton(
+              onPressed: () {
+                Navigator.pushNamedAndRemoveUntil(
+                  context,
+                  '/login',
+                  (route) => false,
+                );
+              },
+              child: const Text(
+                'Logout',
+                style: TextStyle(
+                  fontFamily: 'OpenSans',
+                  color: Colors.redAccent,
+                ),
+              ),
             ),
           ),
         ],
@@ -203,10 +301,32 @@ class ProfileTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: Text(
-        "My Profile",
-        style: TextStyle(fontFamily: 'OpenSans', fontSize: 18),
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Text(
+            "My Profile",
+            style: TextStyle(fontFamily: 'OpenSans', fontSize: 18),
+          ),
+          const SizedBox(height: 20),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ProfileScreen()),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.redAccent,
+              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
+            ),
+            child: const Text(
+              'Go to Profile',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
       ),
     );
   }

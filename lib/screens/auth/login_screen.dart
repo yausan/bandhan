@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../home/home_screen.dart';
 import 'register_screen.dart';
 import 'package:bandhan/data/model/user_model.dart';
@@ -39,6 +41,13 @@ class _LoginScreenState extends State<LoginScreen> {
       debugPrint("API Response: ${response.statusCode} | ${response.data}");
 
       if (response.statusCode == 200) {
+        // ✅ SAVE USER DATA TO SHAREDPREFERENCES
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('token', response.data['token']);
+        await prefs.setString('user', json.encode(response.data['user']));
+
+        debugPrint("✅ Saved user data: ${response.data['user']}");
+
         if (!mounted) return;
 
         ScaffoldMessenger.of(
